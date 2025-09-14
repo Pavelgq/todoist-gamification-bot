@@ -1,4 +1,4 @@
-from src.models import User
+from ..models import User
 
 async def check_auth(update, user) -> bool:
     """

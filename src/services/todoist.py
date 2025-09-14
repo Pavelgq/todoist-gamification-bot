@@ -1,4 +1,4 @@
-from src.models import User, SessionLocal
+from ..models import User, SessionLocal
 from typing import Optional
 
 class TodoistService:

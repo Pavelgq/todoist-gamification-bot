@@ -1,5 +1,5 @@
 from todoist_api_python.api import TodoistAPI
-from src.config import Config
+from ..config import Config
 from urllib.parse import urlencode
 from typing import Optional, List, Any
 
@@ -21,7 +21,9 @@ class TodoistHelper:
             api = TodoistAPI(access_token)
             return api.get_labels()
         except Exception as e:
-            print(f"Error fetching labels: {e}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Ошибка получения меток из Todoist: {e}")
             return None
 
     @staticmethod
@@ -33,5 +35,7 @@ class TodoistHelper:
             api = TodoistAPI(access_token)
             return api.get_completed_items(since=since, limit=limit)
         except Exception as e:
-            print(f"Error fetching completed tasks: {e}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Ошибка получения завершенных задач из Todoist: {e}")
             return None

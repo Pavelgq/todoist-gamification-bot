@@ -1,4 +1,4 @@
-from src.models import Reward, SessionLocal
+from ..models import Reward, SessionLocal
 from typing import List, Optional
 import logging
 from sqlalchemy.orm import joinedload

@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta, timezone
-from src.api.labels import get_labels
-from src.api.tasks import get_completed_tasks
-from src.models import User, SessionLocal, RewardLink, Reward
+from ..api.labels import get_labels
+from ..api.tasks import get_completed_tasks
+from ..models import User, SessionLocal, RewardLink, Reward
 from todoist_api_python.api import TodoistAPI
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 from sqlalchemy.orm import joinedload
 import logging
 
-from src.utils.auth import check_auth
+from ..utils.auth import check_auth
 
 logger = logging.getLogger(__name__)
 

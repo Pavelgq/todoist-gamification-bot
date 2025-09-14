@@ -1,9 +1,9 @@
 from flask import Flask, request
 import requests
 import logging
-from src.config import Config
-from src.database import SessionLocal
-from src.models import User
+from .config import Config
+from .database import SessionLocal
+from .models import User
 
 app = Flask(__name__)
 logger = logging.getLogger(__name__)
@@ -58,4 +58,4 @@ def callback():
         return f"<h1>Ошибка авторизации</h1><p>{str(e)}</p>", 400
 
 def run_server():
-    app.run(port=5000, debug=False, host="0.0.0.0")
+    app.run(port=5001, debug=False, host="0.0.0.0")

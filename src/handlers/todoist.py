@@ -1,10 +1,10 @@
 import logging
-from src.api.labels import get_labels
-from src.services.todoist import TodoistService
+from ..api.labels import get_labels
+from ..services.todoist import TodoistService
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.utils.auth import check_auth
+from ..utils.auth import check_auth
 
 logger = logging.getLogger(__name__)
 

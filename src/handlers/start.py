@@ -1,13 +1,11 @@
 
 
 import logging
-from src.models import SessionLocal, User
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-
-from src.api.todoist_api import TodoistHelper
-from src.database import SessionLocal
-from src.models import User
+from ..database import SessionLocal
+from ..models import User
+from ..api.todoist_api import TodoistHelper
 
 logger = logging.getLogger(__name__)
 

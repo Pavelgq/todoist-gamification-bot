@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from datetime import datetime
 from sqlalchemy.orm import relationship
-from src.models.base import Base
+from .base import Base
 
 class Reward(Base):
     __tablename__ = 'rewards'

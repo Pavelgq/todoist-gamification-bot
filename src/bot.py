@@ -10,7 +10,6 @@ from .config import Config
 
 import logging
 
-from src.utils.auth import check_auth
 
 # Включим логирование
 logging.basicConfig(
@@ -27,14 +26,24 @@ async def handle_auth_callback(update, context):
 
 
 def main():
-    # Инициализация БД
-    init_db()
+    try:
+        # Проверяем конфигурацию
+        Config.validate()
+        
+        # Инициализация БД
+        init_db()
 
-    # Запускаем сервер
-    threading.Thread(target=run_server, daemon=True).start()
-    
-    # Создаем Application
-    application = Application.builder().token(Config.TELEGRAM_TOKEN).build()
+        # Запускаем сервер
+        threading.Thread(target=run_server, daemon=True).start()
+        
+        # Создаем Application
+        application = Application.builder().token(Config.TELEGRAM_TOKEN).build()
+    except ValueError as e:
+        logger.error(f"Ошибка конфигурации: {e}")
+        return
+    except Exception as e:
+        logger.error(f"Ошибка запуска: {e}", exc_info=True)
+        return
 
     rewards_handlers = get_rewards_handlers()
     for handler in rewards_handlers:
@@ -42,7 +51,6 @@ def main():
     
     # Регистрируем обработчики
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("auth", check_auth))
     application.add_handler(CommandHandler("tags", show_tags))
     application.add_handler(CommandHandler("statistic", show_stats))
     application.add_handler(CallbackQueryHandler(handle_auth_callback))
