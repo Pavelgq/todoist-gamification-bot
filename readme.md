@@ -12,7 +12,6 @@
 - Статистика по категориям (наградам) за выбранный период
 - Асинхронная архитектура, чистый Python
 
-
 ## Как это работает?
 
 1. **Добавьте бота и подключите Todoist**
@@ -38,21 +37,23 @@
 - Аккаунт в [Todoist](https://todoist.com)
 - Переменные окружения (см. ниже)
 
-
 ### Установка
 
 1. Клонируйте репозиторий:
+
 ```bash
 git clone https://github.com/your-username/todoist-gamification-bot.git
 cd todoist-gamification-bot
 ```
 
 2. Установите зависимости (если используются сторонние библиотеки):
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. Настройте переменные окружения:
+
 ```
 TELEGRAM_BOT_TOKEN=ваш_телеграм_токен
 TODOIST_CLIENT_ID=ваш_todoist_client_id
@@ -62,10 +63,10 @@ TODOIST_REDIRECT_URI=адрес_для_oauth_перенаправления
 ```
 
 4. Запустите бота:
+
 ```bash
 python src/bot.py
 ```
-
 
 ## Структура проекта
 
@@ -76,7 +77,6 @@ src/
   services/
   utils/
 ```
-
 
 ## Пример использования
 
