@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from ..api.labels import get_labels
-from ..api.tasks import get_completed_tasks
+from ..api.todoist_api import TodoistHelper
 from ..models import User, SessionLocal, RewardLink, Reward
 from todoist_api_python.api import TodoistAPI
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
@@ -53,8 +52,8 @@ async def show_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
             for link in reward_links:
                 reward_map.setdefault(link.tag_id, []).append((link.reward_id, link.value))
 
-        completed_tasks = get_completed_tasks(user.todoist_token, start_dt, end_dt, logger)
-        tags = get_labels(user.todoist_token)
+        completed_tasks = TodoistHelper.get_completed_tasks(user.todoist_token, start_dt, end_dt, logger)
+        tags = TodoistHelper.get_labels(user.todoist_token, logger)
         print(tags)
         name_to_tag_id = {tag.name: tag.id for tag in tags}
 

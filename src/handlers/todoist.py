@@ -1,5 +1,5 @@
 import logging
-from ..api.labels import get_labels
+from ..api.todoist_api import TodoistHelper
 from ..services.todoist import TodoistService
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -17,7 +17,7 @@ async def show_tags(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None
             await update.message.reply_text("❌ Не найден пользователь или нет todoist_token.")
             return
 
-        tags = get_labels(user.todoist_token) if callable(getattr(get_labels, "__await__", None)) else get_labels(user.todoist_token)
+        tags = TodoistHelper.get_labels(user.todoist_token)
         if not tags:
             await update.message.reply_text("У вас нет тегов в Todoist")
             return

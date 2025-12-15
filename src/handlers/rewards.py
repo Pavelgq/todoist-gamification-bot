@@ -5,7 +5,7 @@ from telegram.ext import (
     CommandHandler, MessageHandler, ConversationHandler, CallbackQueryHandler, CallbackContext, filters
 )
 from ..services.todoist import TodoistService
-from ..api.labels import get_labels
+from ..api.todoist_api import TodoistHelper
 from ..services.reward_links import RewardLinkService
 from ..services.rewards import RewardService
 
@@ -77,7 +77,7 @@ async def select_tag_for_reward(update: Update, context: CallbackContext) -> int
         reward_id = int(query.data.split("_")[1])
         context.user_data.setdefault("reward_flow", {})["reward_id"] = reward_id
         user = TodoistService.get_user_by_telegram_id(update.effective_user.id)
-        tags = get_labels(user.todoist_token)
+        tags = TodoistHelper.get_labels(user.todoist_token)
         if not tags:
             await query.edit_message_text("❌ У вас нет тегов в Todoist")
             return ConversationHandler.END
