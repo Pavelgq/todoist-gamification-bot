@@ -135,3 +135,5 @@ echo "💡 Для использования в docker-compose.yml:"
 echo "   image: ${FULL_IMAGE_NAME}"
 
 
+
+
