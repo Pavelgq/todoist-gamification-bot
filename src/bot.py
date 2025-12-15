@@ -1,5 +1,5 @@
+import os
 import threading
-import logging
 
 from telegram import BotCommand
 from telegram.ext import (
@@ -17,37 +17,35 @@ from .handlers.help import show_help
 from .models import init_db
 from .server import run_server
 from .config import Config
+from .utils.logger import setup_logging, get_logger
+from .utils.texts import Messages
 
+# Настраиваем структурированное логирование
+log_level = os.getenv("LOG_LEVEL", "INFO")
+setup_logging(level=log_level)
 
-# Включим логирование
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
-)
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 async def handle_auth_callback(update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    user_id = update.effective_user.id if update.effective_user else None
+    logger.info("Обработка callback авторизации", user_id=user_id)
     await query.answer()
-    await query.edit_message_text(text="Авторизация прошла успешно!")
+    await query.edit_message_text(text=Messages.AUTH_SUCCESS)
 
 
 async def post_init(application: Application) -> None:
     """Регистрируем команды бота для контекстного меню Telegram."""
     await application.bot.set_my_commands(
         [
-            BotCommand("start", "Начать работу и авторизовать Todoist"),
-            BotCommand("help", "Показать список команд"),
-            BotCommand("tags", "Показать список тегов Todoist"),
-            BotCommand(
-                "statistic",
-                "Статистика по наградам (по умолчанию за неделю)",
-            ),
-            BotCommand("newreward", "Создать новую награду"),
-            BotCommand("setreward", "Привязать награду к тегу Todoist"),
-            BotCommand("rewards", "Показать ваши награды"),
+            BotCommand("start", Messages.COMMAND_START_DESC),
+            BotCommand("help", Messages.COMMAND_HELP_DESC),
+            BotCommand("tags", Messages.COMMAND_TAGS_DESC),
+            BotCommand("statistic", Messages.COMMAND_STATISTIC_DESC),
+            BotCommand("newreward", Messages.COMMAND_NEWREWARD_DESC),
+            BotCommand("setreward", Messages.COMMAND_SETREWARD_DESC),
+            BotCommand("rewards", Messages.COMMAND_REWARDS_DESC),
         ]
     )
 
@@ -71,10 +69,10 @@ def main():
             .build()
         )
     except ValueError as e:
-        logger.error(f"Ошибка конфигурации: {e}")
+        logger.error("Ошибка конфигурации", error=str(e))
         return
     except Exception as e:
-        logger.error(f"Ошибка запуска: {e}", exc_info=True)
+        logger.exception("Ошибка запуска", error=str(e))
         return
 
     rewards_handlers = get_rewards_handlers()

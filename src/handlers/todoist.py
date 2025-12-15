@@ -1,34 +1,38 @@
-import logging
-from ..api.todoist_api import TodoistHelper
-from ..services.todoist import TodoistService
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from ..api.todoist_client import TodoistClient
+from ..services.todoist import TodoistService
 from ..utils.auth import check_auth
+from ..utils.logger import get_logger
+from ..utils.texts import Messages
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 async def show_tags(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
-        user = TodoistService.get_user_by_telegram_id(update.effective_user.id) 
-        if not check_auth(update, user):
-            return
-        if not user or not getattr(user, "todoist_token", None):
-            await update.message.reply_text("❌ Не найден пользователь или нет todoist_token.")
+        user_id = update.effective_user.id
+        logger.info("Запрос списка тегов", user_id=user_id)
+        user = TodoistService.get_user_by_telegram_id(user_id) 
+        if not await check_auth(update, user):
             return
 
-        tags = TodoistHelper.get_labels(user.todoist_token)
+        client = TodoistClient(user.todoist_token)
+        tags = client.get_labels()
         if not tags:
-            await update.message.reply_text("У вас нет тегов в Todoist")
+            logger.info("У пользователя нет тегов", user_id=user_id)
+            await update.message.reply_text(Messages.TAGS_NONE)
             return
 
         label_names = [tag.name.strip() for tag in tags if getattr(tag, "name", None)]
         if label_names:
-            message = "Ваши теги:\n" + "\n".join(label_names)
+            message = Messages.TAGS_LIST_HEADER + "\n".join(label_names)
             await update.message.reply_text(message)
+            logger.info("Список тегов отправлен", user_id=user_id, tags_count=len(label_names))
         else:
-            await update.message.reply_text("У вас нет тегов в Todoist")
+            logger.info("У пользователя нет тегов (пустой список после фильтрации)", user_id=user_id)
+            await update.message.reply_text(Messages.TAGS_NONE)
     except Exception as e:
-        logger.error("Ошибка при получении тегов: %s", e)
-        await update.message.reply_text("❌ Ошибка при получении списка тегов.")
+        logger.exception("Ошибка при получении тегов", error=str(e), user_id=update.effective_user.id)
+        await update.message.reply_text(Messages.TAGS_ERROR)
 

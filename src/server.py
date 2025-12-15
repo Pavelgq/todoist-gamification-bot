@@ -1,12 +1,13 @@
 from flask import Flask, request
 import requests
-import logging
-from .config import Config
-from .database import SessionLocal
-from .models import User
+
+from .config import Config, TodoistConfig
+from .services.todoist import TodoistService
+from .utils.logger import get_logger
+from .utils.texts import Messages
 
 app = Flask(__name__)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 @app.route('/auth/callback')
 def callback():
@@ -14,16 +15,16 @@ def callback():
     state = request.args.get('state')
 
     if not code or not state:
-        return "Missing code or state parameters", 400
+        return Messages.SERVER_MISSING_PARAMS, 400
 
     try:
         user_id = int(state)
     except Exception:
-        return "Некорректный state — попробуйте авторизоваться заново через бот.", 400
+        return Messages.SERVER_INVALID_STATE, 400
 
     try:
         response = requests.post(
-            "https://todoist.com/oauth/access_token",
+            TodoistConfig.OAUTH_ACCESS_TOKEN_URL,
             data={
                 "client_id": Config.TODOIST_CLIENT_ID,
                 "client_secret": Config.TODOIST_CLIENT_SECRET,
@@ -36,26 +37,18 @@ def callback():
         token_data = response.json()
         access_token = token_data.get("access_token")
         if not access_token:
-            logger.error(f"Нет access_token в ответе: {token_data}")
-            return "<h1>Ошибка</h1><p>Ошибка авторизации. </p>", 400
+            logger.error("Нет access_token в ответе от Todoist", response_data=token_data, user_id=user_id)
+            return Messages.SERVER_AUTH_ERROR_HTML, 400
 
-        with SessionLocal() as db:
-            user = db.query(User).filter(User.telegram_id == user_id).first()
-            if not user:
-                user = User(telegram_id=user_id)
-                db.add(user)
-            user.todoist_token = access_token
-            db.commit()
+        # Сохраняем токен через сервисный слой
+        TodoistService.upsert_user_token(user_id, access_token)
+        logger.info("Пользователь успешно авторизован в Todoist", user_id=user_id)
         
-        return """
-            <h1>Авторизация успешна!</h1>
-            <p>Теперь вы можете закрыть эту вкладку и вернуться в бота</p>
-            <script>window.close();</script>
-        """
+        return Messages.SERVER_AUTH_SUCCESS_HTML
 
     except Exception as e:
-        logger.error(f"Ошибка авторизации: {e}", exc_info=True)
-        return f"<h1>Ошибка авторизации</h1><p>{str(e)}</p>", 400
+        logger.exception("Ошибка авторизации", error=str(e), user_id=user_id, code=code if 'code' in locals() else None)
+        return Messages.server_auth_error_detail(str(e)), 400
 
 def run_server():
     app.run(port=5001, debug=False, host="0.0.0.0")

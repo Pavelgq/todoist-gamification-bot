@@ -1,15 +1,3 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from ..config import Config
+from ..database import Base, engine, SessionLocal
 
-engine = create_engine(Config.DATABASE_URL, future=True)
-
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-    expire_on_commit=False,
-    future=True,
-)
-
-Base = declarative_base()
+__all__ = ["Base", "engine", "SessionLocal"]

@@ -1,12 +1,38 @@
 from dotenv import load_dotenv
 import os
-import logging
+
+from .utils.logger import get_logger
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
+
+class TodoistConfig:
+    """Константы и настройки для работы с Todoist API."""
+    
+    # URLs
+    OAUTH_AUTHORIZE_URL = "https://todoist.com/oauth/authorize"
+    OAUTH_ACCESS_TOKEN_URL = "https://todoist.com/oauth/access_token"
+    
+    # OAuth scope
+    OAUTH_SCOPE = "data:read_write,data:delete"
+    
+    # Периоды для статистики (в днях)
+    PERIOD_MAP = {
+        "неделя": 7,
+        "месяц": 30,
+        "3 месяца": 90,
+    }
+    
+    # Настройки ретраев для API-вызовов
+    MAX_RETRIES = 3
+    RETRY_DELAY_SECONDS = 1.0
+
 
 class Config:
+    """Основная конфигурация приложения."""
+    
     TELEGRAM_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
     TODOIST_CLIENT_ID = os.getenv('TODOIST_CLIENT_ID')
     TODOIST_CLIENT_SECRET = os.getenv('TODOIST_CLIENT_SECRET')
@@ -29,7 +55,7 @@ class Config:
             
         if missing_vars:
             error_msg = f"Отсутствуют обязательные переменные окружения: {', '.join(missing_vars)}"
-            logger.error(error_msg)
+            logger.error("Отсутствуют обязательные переменные окружения", missing_vars=missing_vars)
             raise ValueError(error_msg)
         
         logger.info("Все переменные окружения настроены корректно")

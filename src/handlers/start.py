@@ -1,52 +1,41 @@
-import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from ..database import SessionLocal
-from ..models import User
-from ..api.todoist_api import TodoistHelper
 
-logger = logging.getLogger(__name__)
+from ..api.todoist_client import TodoistAuthHelper
+from ..services.todoist import TodoistService
+from ..utils.logger import get_logger
+from ..utils.texts import Messages
+
+logger = get_logger(__name__)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user = update.effective_user
-        logger.info(f"User {user.id} started the bot")
+        logger.info("Пользователь запустил бота", user_id=user.id, username=user.username)
 
-        db = SessionLocal()
-        try:
-            db_user = db.query(User).filter(User.telegram_id == user.id).first()
+        if TodoistService.user_has_token(user.id):
+            await update.message.reply_text(Messages.START_ALREADY_AUTHORIZED)
+        else:
+            state = str(user.id)
+            auth_url = TodoistAuthHelper.get_auth_url(state)
 
-            if db_user and db_user.todoist_token:
-                await update.message.reply_text(
-                    "Вы уже авторизованы в Todoist!\n"
-                    "Введите /help или выберите команду из меню, чтобы увидеть всё, что я умею.",
-                )
-            else:
-                state = str(user.id)
-                auth_url = TodoistHelper.get_auth_url(state)
-
-
-                await update.message.reply_text(
-                    "Пожалуйста, авторизуйте доступ к вашему Todoist аккаунту:",
-                    reply_markup=InlineKeyboardMarkup(
+            await update.message.reply_text(
+                Messages.START_AUTH_REQUEST,
+                reply_markup=InlineKeyboardMarkup(
+                    [
                         [
-                            [
-                                InlineKeyboardButton(
-                                    "Авторизовать Todoist",
-                                    url=auth_url,
-                                )
-                            ]
+                            InlineKeyboardButton(
+                                Messages.START_AUTH_BUTTON,
+                                url=auth_url,
+                            )
                         ]
-                    ),
-                )
+                    ]
+                ),
+            )
 
-                await update.message.reply_text(
-                    "После авторизации введите /help или выберите команду из меню.",
-                )
-        finally:
-            db.close()
+            await update.message.reply_text(Messages.START_AFTER_AUTH)
 
     except Exception as e:
-        logger.error(f"Error in start: {e}", exc_info=True)
-        await update.message.reply_text("Произошла ошибка при обработке команды")
+        logger.exception("Ошибка в команде start", error=str(e), user_id=update.effective_user.id)
+        await update.message.reply_text(Messages.START_ERROR)
